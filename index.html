@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PinToStay | Visual Travel Discovery</title>
+  <style>
+    :root {
+      --ink: #24332c; --muted: #738078; --green: #426b53; --green-dark: #2e503d;
+      --cream: #f7f6f0; --card: #fffefa; --line: #e4e7dd; --pale: #e9f0e8;
+      --gold: #d3a85c; --danger: #a53c35;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--cream); color: var(--ink); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; }
+    .topbar { border-bottom: 1px solid var(--line); background: rgba(255,254,250,.92); }
+    .topbar-inner { max-width: 1120px; margin: auto; padding: 18px 24px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
+    .brand { font-weight: 800; font-size: 21px; letter-spacing: -.6px; }
+    .brand span { color: var(--green); }
+    .pill { border: 1px solid #d9e3d7; border-radius: 99px; padding: 7px 11px; color: var(--green-dark); font-size: 12px; background: var(--pale); white-space: nowrap; }
+    main { max-width: 1120px; margin: 0 auto; padding: 48px 24px 70px; }
+    .hero { display:grid; grid-template-columns: 1.3fr .7fr; gap:32px; align-items:center; margin-bottom:36px; }
+    .eyebrow { text-transform:uppercase; letter-spacing:2px; font-size:11px; font-weight:800; color:var(--green); }
+    h1 { font-size: clamp(32px, 5vw, 54px); line-height:1.12; letter-spacing:-1.8px; margin:12px 0 16px; }
+    h1 em { font-style:normal; color:var(--green); }
+    .hero p { color:var(--muted); line-height:1.8; max-width:610px; margin:0; }
+    .hero-card { background:var(--pale); border-radius:24px; padding:25px; min-height:190px; display:flex; flex-direction:column; justify-content:space-between; }
+    .hero-card .big { font-size:44px; line-height:1; }
+    .hero-card p { color:#53695a; font-size:13px; }
+    .steps { display:flex; gap:8px; margin:28px 0 22px; flex-wrap:wrap; }
+    .step { border:1px solid var(--line); background:var(--card); border-radius:99px; padding:9px 13px; font-size:12px; color:var(--muted); }
+    .step b { color:var(--green); margin-right:5px; }
+    .workspace { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .panel { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:22px; box-shadow:0 8px 30px rgba(35,55,40,.035); }
+    .panel h2 { font-size:17px; margin:0 0 7px; letter-spacing:-.3px; }
+    .panel .sub { color:var(--muted); font-size:13px; line-height:1.6; margin:0 0 18px; }
+    .drop { border:1.5px dashed #bdcbbb; border-radius:15px; background:#fbfcf8; min-height:150px; padding:20px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; transition:.15s; }
+    .drop:hover, .drop.drag { border-color:var(--green); background:#f0f5ee; }
+    .drop .symbol { font-size:26px; margin-bottom:7px; }
+    .drop strong { font-size:13px; }
+    .drop small { color:var(--muted); margin-top:5px; font-size:11px; }
+    input[type=file] { display:none; }
+    .preview-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:13px; }
+    .file-chip { font-size:11px; background:#eef2eb; border-radius:9px; padding:7px 9px; max-width:100%; overflow-wrap:anywhere; }
+    .actions { margin-top:20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    button { background:var(--green); color:white; border:0; border-radius:12px; padding:14px 20px; font-weight:750; cursor:pointer; font-size:14px; transition:.15s; }
+    button:hover { background:var(--green-dark); transform:translateY(-1px); }
+    button:disabled { opacity:.55; cursor:wait; transform:none; }
+    .helper { font-size:12px; color:var(--muted); line-height:1.5; }
+    .status { margin-top:16px; border-radius:12px; padding:12px 14px; display:none; font-size:13px; line-height:1.6; }
+    .status.error { display:block; background:#fff0ef; color:var(--danger); }
+    .status.info { display:block; background:#edf4ec; color:var(--green-dark); }
+    .results { margin-top:26px; display:none; }
+    .results-head { display:flex; justify-content:space-between; align-items:end; gap:12px; margin-bottom:14px; }
+    .results h2 { font-size:22px; margin:0 0 5px; }
+    .results .summary { font-size:12px; color:var(--muted); }
+    .result-list { display:grid; gap:10px; }
+    .result { display:grid; grid-template-columns:44px 1fr auto; gap:13px; align-items:center; border:1px solid var(--line); background:var(--card); padding:16px; border-radius:15px; }
+    .rank { width:36px; height:36px; border-radius:12px; display:grid; place-items:center; background:#edf3eb; color:var(--green-dark); font-weight:800; }
+    .result-name { font-size:14px; font-weight:750; overflow-wrap:anywhere; }
+    .bar-wrap { margin-top:8px; background:#edf0e9; height:6px; border-radius:99px; overflow:hidden; max-width:340px; }
+    .bar { height:100%; background:var(--green); border-radius:99px; }
+    .score { text-align:right; font-size:17px; font-weight:800; font-variant-numeric:tabular-nums; }
+    .score small { display:block; color:var(--muted); font-size:10px; font-weight:500; margin-top:3px; }
+    .footnote { color:var(--muted); font-size:11px; line-height:1.7; margin-top:14px; }
+    footer { max-width:1120px; padding:0 24px 32px; margin:auto; color:#8b958d; font-size:11px; line-height:1.6; }
+    @media (max-width:760px) {
+      main { padding-top:32px; } .hero { grid-template-columns:1fr; gap:20px; }
+      .hero-card { min-height:130px; } .workspace { grid-template-columns:1fr; }
+      .topbar-inner { padding:15px 18px; } main { padding-left:18px; padding-right:18px; }
+      .result { grid-template-columns:38px 1fr auto; gap:9px; padding:12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">PinTo<span>Stay</span></div>
+      <div class="pill">AI VISUAL DISCOVERY · PROTOTYPE</div>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Your taste, your next stay</div>
+        <h1>사진 속 취향으로<br><em>여행을 발견하다.</em></h1>
+        <p>마음에 드는 사진과 여행지 이미지를 비교해 보세요. PinToStay는 CLIP 이미지 임베딩과 코사인 유사도를 이용해 시각적으로 가까운 관광자원을 찾아줍니다.</p>
+      </div>
+      <div class="hero-card">
+        <div class="big">✳</div>
+        <div>
+          <strong>Visual Preference Matching</strong>
+          <p>사진 업로드 → 임베딩 추출 → 유사도 비교 → 추천 순위</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="steps">
+      <div class="step"><b>01</b> 취향 사진 선택</div>
+      <div class="step"><b>02</b> 관광자원 사진 선택</div>
+      <div class="step"><b>03</b> 유사도 분석</div>
+    </div>
+
+    <section class="workspace">
+      <div class="panel">
+        <h2>01. 나의 취향 사진</h2>
+        <p class="sub">평소 좋아하는 분위기가 담긴 사진을 한 장 이상 선택하세요. 여러 장을 선택하면 이미지 벡터를 평균 내어 하나의 선호 벡터로 통합합니다.</p>
+        <label class="drop" id="prefDrop" for="preferences">
+          <div class="symbol">▧</div>
+          <strong>사진을 선택하거나 여기에 끌어다 놓으세요</strong>
+          <small>여러 장 선택 가능 · JPG, PNG, WEBP</small>
+        </label>
+        <input id="preferences" name="preferences" type="file" accept="image/*" multiple>
+        <div class="preview-list" id="prefList"></div>
+      </div>
+
+      <div class="panel">
+        <h2>02. 비교할 관광자원 사진</h2>
+        <p class="sub">추천 후보가 될 관광지, 숙소, 카페, 체험 공간 등의 사진을 두 장 이상 선택하면 결과를 비교하기 편합니다.</p>
+        <label class="drop" id="resourceDrop" for="resources">
+          <div class="symbol">⌖</div>
+          <strong>관광자원 사진을 선택하거나 끌어다 놓으세요</strong>
+          <small>여러 장 선택 가능 · 파일명이 결과에 표시됩니다</small>
+        </label>
+        <input id="resources" name="resources" type="file" accept="image/*" multiple>
+        <div class="preview-list" id="resourceList"></div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button id="analyzeBtn" type="button">AI 유사도 분석하기 →</button>
+      <span class="helper">분석은 서버에서 실행됩니다. 총 업로드 용량은 20MB 이내로 유지해 주세요.</span>
+    </div>
+    <div id="status" class="status"></div>
+
+    <section class="results" id="results">
+      <div class="results-head">
+        <div>
+          <h2>추천 유사도 결과</h2>
+          <div id="resultSummary" class="summary"></div>
+        </div>
+        <div class="pill" id="devicePill">CLIP</div>
+      </div>
+      <div class="result-list" id="resultList"></div>
+      <p class="footnote" id="resultNote"></p>
+    </section>
+  </main>
+  <footer>
+    PinToStay research prototype. 결과는 선택한 이미지와 CLIP 모델의 표현 간 유사도를 나타냅니다. 점수는 실제 취향 일치율, 만족도 또는 추천 정확도가 아닙니다. 업로드한 이미지는 이 앱의 분석 요청을 처리하는 동안 사용되며, 별도 저장 기능은 구현되어 있지 않습니다.
+  </footer>
+
+  <script>
+    const preferenceInput = document.getElementById('preferences');
+    const resourceInput = document.getElementById('resources');
+    const prefList = document.getElementById('prefList');
+    const resourceList = document.getElementById('resourceList');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const statusBox = document.getElementById('status');
+    const resultsSection = document.getElementById('results');
+    let preferenceFiles = [];
+    let resourceFiles = [];
+
+    function showFiles(files, target) {
+      target.innerHTML = '';
+      files.forEach(file => {
+        const chip = document.createElement('span');
+        chip.className = 'file-chip';
+        chip.textContent = file.name;
+        target.appendChild(chip);
+      });
+    }
+
+    preferenceInput.addEventListener('change', () => {
+      preferenceFiles = Array.from(preferenceInput.files || []);
+      showFiles(preferenceFiles, prefList);
+    });
+    resourceInput.addEventListener('change', () => {
+      resourceFiles = Array.from(resourceInput.files || []);
+      showFiles(resourceFiles, resourceList);
+    });
+
+    function enableDrop(dropId, type) {
+      const drop = document.getElementById(dropId);
+      drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
+      drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+      drop.addEventListener('drop', e => {
+        e.preventDefault();
+        drop.classList.remove('drag');
+        const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
+        if (type === 'pref') {
+          preferenceFiles = files;
+          showFiles(preferenceFiles, prefList);
+        } else {
+          resourceFiles = files;
+          showFiles(resourceFiles, resourceList);
+        }
+        // File inputs are not programmatically populated; the selected file lists above are used for submission.
+      });
+    }
+    enableDrop('prefDrop', 'pref');
+    enableDrop('resourceDrop', 'resource');
+
+    function setStatus(message, type) {
+      statusBox.textContent = message;
+      statusBox.className = 'status ' + type;
+    }
+
+    analyzeBtn.addEventListener('click', async () => {
+      if (!preferenceFiles.length) {
+        setStatus('선호 사진을 최소 1장 선택해 주세요.', 'error'); return;
+      }
+      if (!resourceFiles.length) {
+        setStatus('비교할 관광자원 사진을 최소 1장 선택해 주세요.', 'error'); return;
+      }
+      const formData = new FormData();
+      preferenceFiles.forEach(file => formData.append('preferences', file));
+      resourceFiles.forEach(file => formData.append('resources', file));
+
+      analyzeBtn.disabled = true;
+      analyzeBtn.textContent = '이미지 분석 중…';
+      resultsSection.style.display = 'none';
+      setStatus('CLIP 모델로 이미지 임베딩을 추출하고 유사도를 계산하고 있습니다. 첫 분석은 조금 더 걸릴 수 있어요.', 'info');
+
+      try {
+        const response = await fetch('/analyze', { method: 'POST', body: formData });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || '분석에 실패했습니다.');
+
+        const list = document.getElementById('resultList');
+        list.innerHTML = '';
+        data.results.forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'result';
+          const rank = document.createElement('div');
+          rank.className = 'rank';
+          rank.textContent = item.rank;
+          const info = document.createElement('div');
+          const name = document.createElement('div');
+          name.className = 'result-name';
+          name.textContent = item.name;
+          const barWrap = document.createElement('div');
+          barWrap.className = 'bar-wrap';
+          const bar = document.createElement('div');
+          bar.className = 'bar';
+          bar.style.width = `${Math.max(0, Math.min(100, item.score_percent))}%`;
+          barWrap.appendChild(bar);
+          info.appendChild(name);
+          info.appendChild(barWrap);
+          const score = document.createElement('div');
+          score.className = 'score';
+          score.textContent = item.score.toFixed(4);
+          const scoreSmall = document.createElement('small');
+          scoreSmall.textContent = '코사인 유사도';
+          score.appendChild(scoreSmall);
+          row.append(rank, info, score);
+          list.appendChild(row);
+        });
+        document.getElementById('resultSummary').textContent =
+          `선호 사진 ${data.preference_count}장 · 관광자원 ${data.resource_count}곳 비교`;
+        document.getElementById('devicePill').textContent = `CLIP · ${data.device.toUpperCase()}`;
+        document.getElementById('resultNote').textContent = data.note;
+        resultsSection.style.display = 'block';
+        setStatus('분석이 완료됐어요. 결과는 유사도가 높은 순서로 정렬되어 있습니다.', 'info');
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (error) {
+        setStatus(error.message || '분석 중 오류가 발생했습니다.', 'error');
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.textContent = 'AI 유사도 분석하기 →';
+      }
+    });
+  </script>
+</body>
+</html>
